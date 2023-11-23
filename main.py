@@ -9,11 +9,13 @@ ALPHABET = {"A": 0, "B": 1, "C": 2}
 class NotPrimeException(Exception):
     pass
 
-
 class NotPrimeRelatives(Exception):
     pass
 
 class AlphabetToSmallError(Exception):
+    pass
+
+class NotExistingCharacterInAlphabetError(Exception):
     pass
 
 
