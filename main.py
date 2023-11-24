@@ -280,7 +280,7 @@ class Decryptor:
 
         # Filling with 0, for numbers with less digits than blockLen
         for index in range(0, len(blocks)):
-            blocks[index] = ("0" * (self.__numDigits(blocks[index]) % blockLen)) + str(blocks[index])
+            blocks[index] = ("0" * (blockLen - self.__numDigits(blocks[index]))) + str(blocks[index])
         
         # Translate blocks to text equivalent
         return (self.__codeToText(blocks, alphabet, blockLen), d)
