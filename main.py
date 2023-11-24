@@ -256,7 +256,7 @@ class Decryptor:
 
     mathUtils = MathUtils()
 
-    def decrypt(self, msg: str, e: int, n: int, alphabet: Alphabet, blockLen: int) -> str:
+    def decrypt(self, msg: str, e: int, n: int, alphabet: Alphabet, blockLen: int) -> tuple[str, int]:
         
         # Check message integrity
         if len(msg) % blockLen != 0:
@@ -283,7 +283,7 @@ class Decryptor:
             blocks[index] = ("0" * (self.__numDigits(blocks[index]) % blockLen)) + str(blocks[index])
         
         # Translate blocks to text equivalent
-        return self.__codeToText(blocks, alphabet, blockLen)
+        return (self.__codeToText(blocks, alphabet, blockLen), d)
     
     def __getModulus(self, n):
         primeFactors = self.mathUtils.primeFactorization(n)
