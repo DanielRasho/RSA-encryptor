@@ -240,7 +240,7 @@ class Encryptor:
         return (e, modulus)
 
     def __isAlphabetValid(self, alphabet: Alphabet, modulus:int, blockLen: int) -> bool:
-        alphabetLenDigits = str(len(alphabet))
+        alphabetLenDigits = str(len(alphabet) - 1)
         digitsPerCharacter = len(alphabetLenDigits)
 
         if blockLen % digitsPerCharacter:
