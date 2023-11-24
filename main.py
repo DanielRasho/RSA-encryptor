@@ -1,5 +1,5 @@
 # 37 characters alphabet
-from typing import Any
+from typing import Any, List
 
 
 ALPHABET = {"A": 0, "B": 1, "C": 2}
@@ -17,7 +17,7 @@ class NotPrimeRelatives(Exception):
     pass
 
 
-class AlphabetToSmallError(Exception):
+class AlphabetToSmallOrBlockLenError(Exception):
     pass
 
 class NotExistingCharacterInAlphabetError(Exception):
@@ -102,7 +102,18 @@ class Encryptor:
     def encrypt(
         self, msg: str, p: int, q: int, e: int, alphabet: Alphabet, blockLen: int
     ) -> str:
-        publicKey = self.__getPublicKey(p, q, e)
+        # Calculating PUBLIC KEY
+        (e, n) = self.__getPublicKey(p, q, e)
+
+        # Checking if alphabet is valid
+        if not self.__isAlphabetValid(alphabet, n, blockLen):
+            raise AlphabetToSmallOrBlockLenError
+
+        # Encoding msg to its numeric equivalent
+        codedMsg = self.__textToCode(msg, alphabet)
+       
+        # Encrypting with public key
+
 
         return "ABCFD43K2"
 
@@ -112,7 +123,7 @@ class Encryptor:
 
         l = (p - 1) * (q - 1)
 
-        if not self.mathUtils.arePrimeRelatives(l, e):
+        if not self.mathUtils.arePrimeRelatives(e, l):
             raise NotPrimeRelatives()
 
         modulus = p * q
@@ -120,21 +131,49 @@ class Encryptor:
         return (e, modulus)
 
     def __isAlphabetValid(self, alphabet: Alphabet, modulus:int, blockLen: int) -> bool:
-        alphabetDigits = str(len(alphabet))
-        numberOfAlphabetDigits = len(alphabetDigits)
+        alphabetLenDigits = str(len(alphabet))
+        digitsPerCharacter = len(alphabetLenDigits)
 
-        if blockLen % numberOfAlphabetDigits:
+        if blockLen % digitsPerCharacter:
             return False
         
-        maximumCode = alphabetDigits * (blockLen // numberOfAlphabetDigits)
+        maximumCode = int(alphabetLenDigits * (blockLen // digitsPerCharacter)) 
 
-        if int(maximumCode) > modulus: 
+        if maximumCode > modulus: 
             return False
         return True
 
+    def __textToCode(self, message: str, alphabet: Alphabet, blockLen: int) -> List[int] :
+        digitsPerCharacter = self.__numDigits(len(alphabet))
+        charactersPerBlock = blockLen // digitsPerCharacter
+
+        # Complete message if missing characters
+        completedMsg = message
+        missingCharacters = len(message) % charactersPerBlock
+        if missingCharacters != 0: 
+            completedMsg += alphabet.getCharacter(0) * missingCharacters 
+        
+        # Returning values 
+        encodedMsg = []
+        for index in range(0, len(completedMsg), charactersPerBlock): 
+            textBlock = completedMsg[index:index + charactersPerBlock]
+            print(textBlock)
+            codedBlock = ""
+            for letter in textBlock:
+                code = alphabet.getCode(letter)
+                if self.__numDigits(code) < digitsPerCharacter:
+                    code = ("0" * (self.__numDigits(code) % charactersPerBlock)) + str(code)
+                codedBlock += code
+            encodedMsg.append(int(codedBlock))
+
+        return encodedMsg
+
+    def __numDigits(self, num : int) -> int:
+        return len(str(num))
+
 
 class Decryptor:
-    def decrypt(self, msg: str, e: int, n: int) -> str:
+    def decrypt(self, msg: str, e: int, n: int, alphabet: Alphabet, blockLen: int) -> str:
         return "HELLO WORLD"
 
 ##################
@@ -156,7 +195,8 @@ COMPLETE_ALPHABET = Alphabet(
 )
 
 def main():
-    pass
+    e = Encryptor()
+
 
 if __name__ == "__main__":
     main()
