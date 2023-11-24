@@ -20,10 +20,8 @@ class NotPrimeRelatives(Exception):
 class AlphabetToSmallError(Exception):
     pass
 
-
 class NotExistingCharacterInAlphabetError(Exception):
     pass
-
 
 class NotExistingCodeInAlphabetError(Exception):
     pass
@@ -121,7 +119,17 @@ class Encryptor:
 
         return (e, modulus)
 
-    def __isAlphabetValid(self, alphabet: Alphabet, blockLen: int) -> bool:
+    def __isAlphabetValid(self, alphabet: Alphabet, modulus:int, blockLen: int) -> bool:
+        alphabetDigits = str(len(alphabet))
+        numberOfAlphabetDigits = len(alphabetDigits)
+
+        if blockLen % numberOfAlphabetDigits:
+            return False
+        
+        maximumCode = alphabetDigits * (blockLen // numberOfAlphabetDigits)
+
+        if int(maximumCode) > modulus: 
+            return False
         return True
 
 
