@@ -44,6 +44,9 @@ class NotExistingCodeInAlphabetError(Exception):
 class IncompleteBlocksOnMsg(Exception):
     pass
 
+class InvalidPublicKey(Exception):
+    pass
+
 ##########################
 ## MODEL CLASSES
 ##########################
@@ -288,7 +291,7 @@ class Decryptor:
     def __getModulus(self, n):
         primeFactors = self.mathUtils.primeFactorization(n)
         if len(primeFactors) != 2:
-            raise ValueError("n must be a multiplication of just TWO prime numbers")
+            raise InvalidPublicKey
         return (primeFactors[0] - 1)*(primeFactors[1] - 1)
     
     def __msgToCodeBlocks(self, msg: str, blockLen: int) -> List[int] :
@@ -381,14 +384,18 @@ class RSASystem(QtWidgets.QMainWindow):
             self.showAlert("Invalid Input. Please enter valid numbers")
         except NotPrimeException:
             self.showAlert("The numbers entered are not prime. Prime numbers are required")
+        except NotPrimeRelatives:
+            self.showAlert("\"e\" is not prime relative of (p-1)(q-1)")
         except NotExistingCharacterInAlphabetError:
             self.showAlert("Invalid message. Contains characters out of basic or complete alphabet")
         except IncompleteBlocksOnMsg:
-            self.showAlert("Incomplete blocks. Prime (e) must be a relative prime")
+            self.showAlert("Incomplete blocks. There are blocks with less than 4 digits")
         except NotExistingCodeInAlphabetError:
             self.showAlert("Invalid message. Contains characters out of basic or complete alphabet")
         except AlphabetToBigOrBlockLenError:
             self.showAlert("Alphabet size or block length error. There is an issue with the alphabet size or block length")
+        except InvalidPublicKey:
+            self.showAlert("Given public key is invalid")
         except:
             self.showAlert("This action cannot be performed")
     
@@ -415,14 +422,14 @@ class RSASystem(QtWidgets.QMainWindow):
         self.setVisibility(self.lblPrime3, self.txtPrime3, True)
         self.lblPrime1.setText("Prime (p)")
         self.lblPrime2.setText("Prime (q)")
-        self.lblPrime3.setText("Prime (e)")
+        self.lblPrime3.setText("Coprime (e)")
 
     def setUpDecrypted(self):
         self.clean()
         self.lblResult.setText("Decrypted Message (M)")
         self.setVisibility(self.lblPrivKey, self.txtPrivKey, True)
         self.setVisibility(self.lblPrime3, self.txtPrime3, False)
-        self.lblPrime1.setText("Prime (e)")
+        self.lblPrime1.setText("Coprime (e)")
         self.lblPrime2.setText("Prime (n)")
 
     def setUpComboBox(self):
