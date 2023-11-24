@@ -79,20 +79,48 @@ class Alphabet(dict):
 
 
 class MathUtils:
-    def isPrime(self, a: int) -> bool:
+    def isPrime(self, n: int) -> bool:
+        # Cheking the simple cases
+        if n <= 1:
+            return False
+        if n == 2 or n == 3:
+            return True
+        if n % 2 == 0 or n % 3 == 0:
+            return False
+        
+        i = 5 # Starting point
+        w = 2 # For skiping even numbers
+        
+        while i * i <= n:
+            if n % i == 0:
+                return False
+            i += w
+            w = 6 - w
+        
         return True
 
     def arePrimeRelatives(self, a: int, b: int) -> bool:
-        return True
+        return self.__EuclidesGCD(a, b) == 1
 
     def getInverseModulus(self, n: int, modulus: int) -> int:
         return 0
 
-    def getExponentModulus(self, n: int, exponent: int, modulus: int) -> int:
-        return 0
+    def getPowerOnModulus(self, base: int, exponent: int, modulus: int) -> int:
+            if exponent == 0:
+                return 1
+            elif exponent % 2 == 0:
+                # If exponent is even, use the property a^(2n) = (a^n)^2
+                temp = self.getPowerOnModulus(base, exponent // 2, modulus)
+                return (temp * temp) % modulus
+            else:
+                # If exponent is odd, use the property a^(2n+1) = a * a^(2n)
+                temp = self.getPowerOnModulus(base, (exponent - 1) // 2, modulus)
+                return (base * temp * temp) % modulus
 
-    def __EuclidesDecomposition(self, a: int, b: int) -> int:
-        return 0
+    def __EuclidesGCD(self, a: int, b: int) -> int:
+        while b:
+            a, b = b, a % b
+        return a
 
     def __BezautComposition(self, a: int, b: int) -> tuple[int, int]:
         return (0, 0)
@@ -112,12 +140,20 @@ class Encryptor:
             raise AlphabetToSmallOrBlockLenError
 
         # Encoding msg to its numeric equivalent
-        codedMsg = self.__textToCode(msg, alphabet)
-       
+        encodedMsg = self.__textToCode(msg, alphabet, blockLen)
+        print(encodedMsg)
+
         # Encrypting with public key
+        encryptedBlocks = []
+        for block in encodedMsg:
+            encryptedBlock = self.mathUtils.getPowerOnModulus(block,e,n)
+            # Fill block if missing digits
+            if len(str(encryptedBlock)) < blockLen:
+                encryptedBlocks.append("0" * (blockLen - len(str(encryptedBlock))) + str(encryptedBlock))
+            else:
+                encryptedBlocks.append(str(encryptedBlock))
 
-
-        return "ABCFD43K2"
+        return " ".join(encryptedBlocks)
 
     def __getPublicKey(self, p: int, q: int, e: int) -> tuple[int, int]:
         if not self.mathUtils.isPrime(p) or not self.mathUtils.isPrime(q):
@@ -165,7 +201,7 @@ class Encryptor:
                 code = alphabet.getCode(letter)
                 if self.__numDigits(code) < digitsPerCharacter:
                     code = ("0" * (self.__numDigits(code) % charactersPerBlock)) + str(code)
-                codedBlock += code
+                codedBlock += str(code)
             encodedMsg.append(int(codedBlock))
 
         return encodedMsg
@@ -197,6 +233,11 @@ COMPLETE_ALPHABET = Alphabet(
 )
 
 ALPHABET_CHOICES = [BASIC_ALPHABET, COMPLETE_ALPHABET]
+
+
+def main():
+    e = Encryptor()
+    print(e.encrypt("VIVAMIXCO", 53, 67, 85, BASIC_ALPHABET, 4))
 
 
 ##########################
