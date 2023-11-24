@@ -1,3 +1,29 @@
+"""
+-----------------------------------
+Proyecto RSA - Matemática Discreta
+-----------------------------------
+
+Autores: 
+- Daniel Rayo, 22933
+- Gerson Ramírez, 22281
+
+Descripción:
+Este archivo contiene la implementación del algoritmo de cifrado RSA.
+Incluye funciones para generar claves, encriptar y desencriptar mensajes.
+El usuario puede especificar el alfabeto, mensaje, número primos de encritación y primo relativo.
+
+Uso:
+Para ejecutar este programa, simplemente ejecute el archivo.
+Asegúrese de tener Python 3.x instalado en su sistema y el archivo GUI llamado UI.ui, si no cuenta
+con la librería de PyQT5, el programa instalará esta dependencia automáticamente, de no ser así,
+instale de la siguiente manera en su ventana de comandos: "pip install PyQt5"
+
+Notas Adicionales:
+- Este es un proyecto educativo y no debe utilizarse para propósitos de seguridad reales.
+- La eficacia y seguridad del algoritmo dependen de la implementación y los parámetros utilizados.
+"""
+
+
 from typing import List
 import importlib.util
 import sys
