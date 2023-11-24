@@ -355,10 +355,10 @@ class RSASystem(QtWidgets.QMainWindow):
         self.rbDecrypt.clicked.connect(self.setUpDecrypted)
         self.btnSTM.clicked.connect(self.sendText)
 
-    def operate(self):
+    def operate(self): 
+        try:
+            if(self.rbEncrypt.isChecked()):
 
-        if(self.rbEncrypt.isChecked()):
-            try:
                 msg = self.txtMessage.text().upper().replace(" ", "")
                 p = int(self.txtPrime1.text())
                 q = int(self.txtPrime2.text())
@@ -366,24 +366,31 @@ class RSASystem(QtWidgets.QMainWindow):
                 alphabet = ALPHABET_CHOICES[self.cmbAlphabet.currentIndex()]
                 result = self.encryptor.encrypt(msg, p, q, e, alphabet, 4)
                 self.txtResult.setText(result)
-            except ValueError:
-                self.showAlert("Invalid Input. Please enter valid numbers")
-            except:
-                self.showAlert("This action cannot be performed")
 
-        elif(self.rbDecrypt.isChecked()):
-            try:
+            elif(self.rbDecrypt.isChecked()):
+
                 msg = self.txtMessage.text().upper().replace(" ","")
                 e = int(self.txtPrime1.text())
                 n = int(self.txtPrime2.text())
                 alphabet = ALPHABET_CHOICES[self.cmbAlphabet.currentIndex()]
                 result = self.decryptor.decrypt(msg, e, n, alphabet, 4)
-                self.txtResult.setText(result)
-            except ValueError:
-                self.showAlert("Invalid Input. Please enter valid numbers")
-            except:
-                self.showAlert("This action cannot be performed")
-        pass
+                self.txtResult.setText(result[0])
+                self.txtPrivKey.setText(str(result[1]))
+
+        except ValueError:
+            self.showAlert("Invalid Input. Please enter valid numbers")
+        except NotPrimeException:
+            self.showAlert("The numbers entered are not prime. Prime numbers are required")
+        except NotExistingCharacterInAlphabetError:
+            self.showAlert("Invalid message. Contains characters out of basic or complete alphabet")
+        except IncompleteBlocksOnMsg:
+            self.showAlert("Incomplete blocks. Prime (e) must be a relative prime")
+        except NotExistingCodeInAlphabetError:
+            self.showAlert("Invalid message. Contains characters out of basic or complete alphabet")
+        except AlphabetToBigOrBlockLenError:
+            self.showAlert("Alphabet size or block length error. There is an issue with the alphabet size or block length")
+        except:
+            self.showAlert("This action cannot be performed")
     
     def sendText(self):
         self.txtMessage.setText(self.txtResult.text())
@@ -432,9 +439,6 @@ class RSASystem(QtWidgets.QMainWindow):
 
 
 def main():
-    e = Decryptor()
-    a = Encryptor()
-    print(e.decrypt("20062830135311360457", 85, 3551, BASIC_ALPHABET, 4))
     app = QtWidgets.QApplication(sys.argv)
     window = RSASystem()
     window.show()
