@@ -19,7 +19,6 @@ if spec is None:
 
     print(f'The {module_name} module is now installed')
 
-
 from PyQt5 import QtWidgets, uic
 
 ##########################
@@ -30,12 +29,10 @@ from PyQt5 import QtWidgets, uic
 class NotPrimeException(Exception):
     pass
 
-
 class NotPrimeRelatives(Exception):
     pass
 
-
-class AlphabetToSmallOrBlockLenError(Exception):
+class AlphabetToBigOrBlockLenError(Exception):
     pass
 
 class NotExistingCharacterInAlphabetError(Exception):
@@ -44,6 +41,8 @@ class NotExistingCharacterInAlphabetError(Exception):
 class NotExistingCodeInAlphabetError(Exception):
     pass
 
+class IncompleteBlocksOnMsg(Exception):
+    pass
 
 ##########################
 ## MODEL CLASSES
@@ -117,9 +116,13 @@ class MathUtils:
 
     def arePrimeRelatives(self, a: int, b: int) -> bool:
         return self.__EuclidesGCD(a, b) == 1
-
+    
     def getInverseModulus(self, n: int, modulus: int) -> int:
-        return 0
+        g, x, _ = self.__EuclidesGCDExtended(n, modulus)
+        if g != 1:
+            raise ValueError(f"The modular inverse does not exist for {n} mod {modulus}.")
+        else:
+            return x % modulus
 
     def getPowerOnModulus(self, base: int, exponent: int, modulus: int) -> int:
             if exponent == 0:
@@ -133,13 +136,36 @@ class MathUtils:
                 temp = self.getPowerOnModulus(base, (exponent - 1) // 2, modulus)
                 return (base * temp * temp) % modulus
 
+    def primeFactorization(self, n) -> List[int]:
+        factors = []
+        # Divide by 2 until it's an odd number
+        while n % 2 == 0:
+            factors.append(2)
+            n = n // 2
+
+        # Divide by odd numbers starting from 3
+        for i in range(3, int(n**0.5) + 1, 2):
+            while n % i == 0:
+                factors.append(i)
+                n = n // i
+
+        # If n is a prime number greater than 2
+        if n > 2:
+            factors.append(n)
+
+        return factors
+
     def __EuclidesGCD(self, a: int, b: int) -> int:
         while b:
             a, b = b, a % b
         return a
-
-    def __BezautComposition(self, a: int, b: int) -> tuple[int, int]:
-        return (0, 0)
+    
+    def __EuclidesGCDExtended(self, a: int, b: int) -> int:
+        if a == 0:
+            return (b, 0, 1)
+        else:
+            g, x, y = self.__EuclidesGCDExtended(b % a, a)
+            return (g, y - (b // a) * x, x)
 
 
 class Encryptor:
@@ -153,7 +179,7 @@ class Encryptor:
 
         # Checking if alphabet is valid
         if not self.__isAlphabetValid(alphabet, n, blockLen):
-            raise AlphabetToSmallOrBlockLenError
+            raise AlphabetToBigOrBlockLenError
 
         # Encoding msg to its numeric equivalent
         encodedMsg = self.__textToCode(msg, alphabet, blockLen)
@@ -207,10 +233,10 @@ class Encryptor:
         if missingCharacters != 0: 
             completedMsg += alphabet.getCharacter(0) * missingCharacters 
         
-        # Returning values 
+        # Returning numeric values 
         encodedMsg = []
         for index in range(0, len(completedMsg), charactersPerBlock): 
-            textBlock = completedMsg[index:index + charactersPerBlock]
+            textBlock = completedMsg[index :index + charactersPerBlock]
             print(textBlock)
             codedBlock = ""
             for letter in textBlock:
@@ -227,8 +253,66 @@ class Encryptor:
 
 
 class Decryptor:
+
+    mathUtils = MathUtils()
+
     def decrypt(self, msg: str, e: int, n: int, alphabet: Alphabet, blockLen: int) -> str:
-        return "HELLO WORLD"
+        
+        # Check message integrity
+        if len(msg) % blockLen != 0:
+            raise IncompleteBlocksOnMsg
+        if blockLen % self.__numDigits(len(alphabet)) != 0:
+            raise AlphabetToBigOrBlockLenError
+        
+        # Calculating modulus
+        modulus = self.__getModulus(n)
+
+        # Calculating private key
+        d = self.mathUtils.getInverseModulus(e, modulus)
+
+        # Divide msg in blocks
+        blocks = self.__msgToCodeBlocks(msg, blockLen)
+
+        # Decrypt blocks
+        for index in range(0, len(blocks)):
+            blocks[index] = self.mathUtils.getPowerOnModulus(blocks[index], d, n)
+        print(blocks)
+
+        # Filling with 0, for numbers with less digits than blockLen
+        for index in range(0, len(blocks)):
+            blocks[index] = ("0" * (self.__numDigits(blocks[index]) % blockLen)) + str(blocks[index])
+        
+        # Translate blocks to text equivalent
+        return self.__codeToText(blocks, alphabet, blockLen)
+    
+    def __getModulus(self, n):
+        primeFactors = self.mathUtils.primeFactorization(n)
+        if len(primeFactors) != 2:
+            raise ValueError("n must be a multiplication of just TWO prime numbers")
+        return (primeFactors[0] - 1)*(primeFactors[1] - 1)
+    
+    def __msgToCodeBlocks(self, msg: str, blockLen: int) -> List[int] :
+        blocks = []
+        for index in range(0, len(msg), blockLen):
+            blocks.append(int(msg[index : index + blockLen]))
+        return blocks
+
+    def __codeToText(self, blocks: List[str], alphabet: Alphabet, blockLen:int) -> str:
+        digitsPerCharacter = self.__numDigits(len(alphabet))
+        charactersPerBlock = blockLen // digitsPerCharacter
+        characters = []
+
+        for block in blocks:
+            for index in range(0, blockLen, charactersPerBlock):
+                code = int(block[index: index + charactersPerBlock])
+                characters.append(alphabet.getCharacter(code))
+        
+        return "".join(characters)
+
+    def __numDigits(self, num : int) -> int:
+        return len(str(num))
+
+
 
 ##################
 # ALPHABETS
@@ -249,12 +333,6 @@ COMPLETE_ALPHABET = Alphabet(
 )
 
 ALPHABET_CHOICES = [BASIC_ALPHABET, COMPLETE_ALPHABET]
-
-
-def main():
-    e = Encryptor()
-    print(e.encrypt("VIVAMIXCO", 53, 67, 85, BASIC_ALPHABET, 4))
-
 
 ##########################
 ## GUI IMPLEMENTATION
@@ -354,6 +432,9 @@ class RSASystem(QtWidgets.QMainWindow):
 
 
 def main():
+    e = Decryptor()
+    a = Encryptor()
+    print(e.decrypt("20062830135311360457", 85, 3551, BASIC_ALPHABET, 4))
     app = QtWidgets.QApplication(sys.argv)
     window = RSASystem()
     window.show()
