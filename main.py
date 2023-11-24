@@ -265,7 +265,7 @@ class RSASystem(QtWidgets.QMainWindow):
 
         if(self.rbEncrypt.isChecked()):
             try:
-                msg = self.txtMessage.text().upper()
+                msg = self.txtMessage.text().upper().replace(" ", "")
                 p = int(self.txtPrime1.text())
                 q = int(self.txtPrime2.text())
                 e = int(self.txtPrime3.text())
