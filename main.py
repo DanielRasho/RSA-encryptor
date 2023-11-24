@@ -373,7 +373,7 @@ class RSASystem(QtWidgets.QMainWindow):
 
         elif(self.rbDecrypt.isChecked()):
             try:
-                msg = self.txtMessage.text().upper()
+                msg = self.txtMessage.text().upper().replace(" ","")
                 e = int(self.txtPrime1.text())
                 n = int(self.txtPrime2.text())
                 alphabet = ALPHABET_CHOICES[self.cmbAlphabet.currentIndex()]
@@ -419,7 +419,7 @@ class RSASystem(QtWidgets.QMainWindow):
         self.lblPrime2.setText("Prime (n)")
 
     def setUpComboBox(self):
-        self.cmbAlphabet.addItems(["Basic","Complete"])
+        self.cmbAlphabet.addItems(["Basic (26)","Complete (37)"])
         self.cmbAlphabet.setCurrentIndex(0)
 
     def showAlert(self, description):
