@@ -1,10 +1,26 @@
-# 37 characters alphabet
-from typing import Any, List
-from PyQt5 import QtWidgets, uic
+from typing import List
+import importlib.util
 import sys
+import subprocess
+
+module_name = 'PyQt5'
+
+spec = importlib.util.find_spec(module_name)
+
+if spec is None:
+    print(f'The {module_name} module is NOT installed')
+
+    # 👇️ optionally install the module if it's not installed
+    python = sys.executable
+    subprocess.check_call(
+        [sys.executable, '-m', 'pip', 'install', module_name],
+        stdout=subprocess.DEVNULL
+    )
+
+    print(f'The {module_name} module is now installed')
 
 
-ALPHABET = {"A": 0, "B": 1, "C": 2}
+from PyQt5 import QtWidgets, uic
 
 ##########################
 ## EXCEPTION DEFINITION
